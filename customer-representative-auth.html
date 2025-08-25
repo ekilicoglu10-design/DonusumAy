@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DönüşümAY - Müşteri Temsilcisi Paneli Giriş</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #8B5CF6;
+            --primary-light: #A78BFA;
+            --primary-dark: #7C3AED;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .bg-primary-light { background-color: var(--primary-light); }
+        .bg-primary-dark { background-color: var(--primary-dark); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            z-index: 50;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .notification.error {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .notification.info {
+            background-color: #3B82F6;
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .bg-gradient-customer {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+        }
+        .text-center .inline-flex {
+            width: 270px;
+            height: 90px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-customer flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo ve Başlık -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                <img src="BEĞENDİĞİM.png" alt="DönüşümAY Logo" class="h-12 w-auto">
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Müşteri Temsilcisi</h1>
+            <p class="text-purple-100">Destek ve İletişim Merkezi</p>
+        </div>
+
+        <!-- Giriş Formu -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form id="customerRepLoginForm" onsubmit="handleCustomerRepLogin(event)">
+                <div class="mb-6">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2 text-purple-600"></i>
+                        E-posta Adresi
+                    </label>
+                    <input type="email" id="email" name="email" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="temsilci@example.com">
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-purple-600"></i>
+                        Şifre
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-12"
+                               placeholder="••••••••">
+                        <button type="button" onclick="togglePassword()" 
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" 
+                               class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50">
+                        <span class="ml-2 text-sm text-gray-600">Beni hatırla</span>
+                    </label>
+                    <a href="#" onclick="showForgotPassword()" class="text-sm text-purple-600 hover:text-purple-800">
+                        Şifremi unuttum
+                    </a>
+                </div>
+
+                <button type="submit" id="loginBtn" 
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 relative">
+                    <i class="fas fa-headset mr-2"></i>
+                    Müşteri Temsilcisi Paneline Giriş Yap
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Müşteri temsilcisi yetkisi yok mu? 
+                    <a href="auth.html" class="text-purple-600 hover:text-purple-800 font-medium">
+                        Ana giriş sayfasına dön
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Demo Bilgileri -->
+        <div class="mt-6 bg-white bg-opacity-10 rounded-lg p-4 text-center">
+            <p class="text-white text-sm mb-2">
+                <i class="fas fa-info-circle mr-2"></i>
+                Demo Giriş Bilgileri
+            </p>
+            <p class="text-purple-100 text-xs">
+                E-posta: temsilci@demo.com<br>
+                Şifre: demo123
+            </p>
+        </div>
+    </div>
+
+    <!-- Şifremi Unuttum Modal -->
+    <div id="forgotPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Şifre Sıfırlama</h3>
+                <button onclick="closeForgotPassword()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)">
+                <div class="mb-4">
+                    <label for="resetEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                        E-posta Adresi
+                    </label>
+                    <input type="email" id="resetEmail" name="resetEmail" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           placeholder="E-posta adresinizi girin">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" onclick="closeForgotPassword()" 
+                            class="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        İptal
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/customer-representative-auth.js"></script>
+</body>
+</html>
