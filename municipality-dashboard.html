@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DönüşümAY - Belediye Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #5A00A8;
+            --primary-light: #8B00FF;
+            --primary-dark: #4B0082;
+            --accent: #28a745;
+            --accent-warning: #FF8C00;
+            --text-dark: #343a40;
+            --text-medium: #4A4A4A;
+            --text-light: #6c757d;
+            --bg-white: #FFFFFF;
+            --bg-light-gray: #F8F8F8;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .bg-primary-light { background-color: var(--primary-light); }
+        .bg-primary-dark { background-color: var(--primary-dark); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .notification.removing {
+            animation: slideOutRight 0.3s ease-in;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f8fafc;
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-item.active:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .project-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .supported-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .government-support {
+            border-left: 4px solid #10b981;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        }
+
+        .priority-high {
+            border-left: 4px solid #dc2626;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .priority-low {
+            border-left: 4px solid #6b7280;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-active {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-supported {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-completed {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background-color: #10b981;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .map-container {
+            height: 300px;
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <img src="BEĞENDİĞİM.png" alt="DönüşümAY Logo" class="h-8 w-auto flex-shrink-0">
+                    <div class="min-w-0">
+                        <h1 class="text-base font-bold text-gray-800 whitespace-nowrap">Belediye Paneli</h1>
+                        <p class="text-xs text-gray-500 whitespace-nowrap">Kentsel Dönüşüm Yönetimi</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="sidebar-item active flex items-center space-x-3 p-3 rounded-lg" onclick="showSection('dashboard')">
+                            <i class="fas fa-home w-5"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('announcements')">
+                            <i class="fas fa-bullhorn w-5"></i>
+                            <span>Duyurular</span>
+                            <span class="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="announcementCount">15</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('projects')">
+                            <i class="fas fa-building w-5"></i>
+                            <span>Projeler</span>
+                            <span class="ml-auto bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full" id="projectCount">28</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('support-management')">
+                            <i class="fas fa-award w-5"></i>
+                            <span>Destek Yönetimi</span>
+                            <span class="ml-auto bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full" id="supportedCount">8</span>
+                        </a>
+                    </li>
+                    <li class="border-t border-gray-200 pt-2">
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('districts')">
+                            <i class="fas fa-map-marked-alt w-5"></i>
+                            <span>Bölge Yönetimi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('reports')">
+                            <i class="fas fa-chart-bar w-5"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showSection('settings')">
+                            <i class="fas fa-cog w-5"></i>
+                            <span>Ayarlar</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        KB
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Kadıköy Belediyesi</p>
+                        <p class="text-xs text-gray-500">İstanbul</p>
+                    </div>
+                    <button onclick="logout()" class="text-gray-400 hover:text-gray-600" title="Çıkış Yap" aria-label="Çıkış Yap">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="min-h-screen">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                        <p class="text-gray-600 mt-1">Kentsel dönüşüm projelerini yönetin ve devlet desteği sağlayın.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Toplam Duyuru</p>
+                                    <p class="text-2xl font-bold text-gray-900">15</p>
+                                </div>
+                                <div class="p-3 bg-blue-100 rounded-lg">
+                                    <i class="fas fa-bullhorn text-blue-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-sm text-green-600">+3 bu ay</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Aktif Proje</p>
+                                    <p class="text-2xl font-bold text-gray-900">28</p>
+                                </div>
+                                <div class="p-3 bg-purple-100 rounded-lg">
+                                    <i class="fas fa-building text-purple-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-sm text-blue-600">+5 bu hafta</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Desteklenen Proje</p>
+                                    <p class="text-2xl font-bold text-gray-900">8</p>
+                                </div>
+                                <div class="p-3 bg-green-100 rounded-lg">
+                                    <i class="fas fa-award text-green-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-sm text-green-600">%28.6 oran</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Beklenen Teklif</p>
+                                    <p class="text-2xl font-bold text-gray-900">42</p>
+                                </div>
+                                <div class="p-3 bg-yellow-100 rounded-lg">
+                                    <i class="fas fa-handshake text-yellow-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center">
+                                <span class="text-sm text-yellow-600">+12 bu hafta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Recent Announcements -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Son Duyurular</h3>
+                                <button onclick="showSection('announcements')" class="text-sm text-primary hover:text-primary-dark">
+                                    Tümünü Gör <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="p-6" id="recent-announcements">
+                                <!-- Recent announcements will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Government Support Actions -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Destek Bekleyen Projeler</h3>
+                                <button onclick="showSection('support-management')" class="text-sm text-primary hover:text-primary-dark">
+                                    Yönet <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="p-6" id="pending-support-projects">
+                                <!-- Pending support projects will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements Section -->
+            <div id="announcements-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Kentsel Dönüşüm Duyuruları</h1>
+                            <p class="text-gray-600 mt-1">Yetki alanınızdaki tüm kentsel dönüşüm duyurularını görüntüleyin.</p>
+                        </div>
+                        <button onclick="createAnnouncement()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark">
+                            <i class="fas fa-plus mr-2"></i>
+                            Yeni Duyuru
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <!-- Filters -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="districtFilter" onchange="filterAnnouncements()" title="İlçe Seçin" aria-label="İlçe Filtresi">
+                                <option value="">Tüm İlçeler</option>
+                                <option value="kadikoy">Kadıköy</option>
+                                <option value="uskudar">Üsküdar</option>
+                                <option value="besiktas">Beşiktaş</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="statusFilter" onchange="filterAnnouncements()" title="Durum Seçin" aria-label="Durum Filtresi">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="active">Aktif</option>
+                                <option value="pending">Beklemede</option>
+                                <option value="completed">Tamamlandı</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="typeFilter" onchange="filterAnnouncements()" title="Tür Seçin" aria-label="Tür Filtresi">
+                                <option value="">Tüm Türler</option>
+                                <option value="urban-transformation">Kentsel Dönüşüm</option>
+                                <option value="renovation">Yenileme</option>
+                                <option value="development">Arsa Geliştirme</option>
+                            </select>
+                            <input type="text" placeholder="Duyuru ara..." class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="searchAnnouncements" onkeyup="filterAnnouncements()">
+                        </div>
+                    </div>
+
+                    <!-- Announcements List -->
+                    <div class="space-y-4" id="announcements-list">
+                        <!-- Announcements will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Section -->
+            <div id="projects-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Projeler</h1>
+                        <p class="text-gray-600 mt-1">Bölgenizdeki tüm kentsel dönüşüm projelerini görüntüleyin ve yönetin.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <!-- Project Filters -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="projectDistrictFilter" onchange="filterProjects()" title="İlçe Seçin" aria-label="Proje İlçe Filtresi">
+                                <option value="">Tüm İlçeler</option>
+                                <option value="kadikoy">Kadıköy</option>
+                                <option value="uskudar">Üsküdar</option>
+                                <option value="besiktas">Beşiktaş</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="projectStatusFilter" onchange="filterProjects()" title="Durum Seçin" aria-label="Proje Durum Filtresi">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="planning">Planlama</option>
+                                <option value="active">Aktif</option>
+                                <option value="construction">İnşaat</option>
+                                <option value="completed">Tamamlandı</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="supportStatusFilter" onchange="filterProjects()" title="Destek Durumu Seçin" aria-label="Destek Durum Filtresi">
+                                <option value="">Destek Durumu</option>
+                                <option value="supported">Desteklenen</option>
+                                <option value="not-supported">Desteklenmeyen</option>
+                                <option value="pending-review">İnceleme Bekleyen</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="priorityFilter" onchange="filterProjects()" title="Öncelik Seçin" aria-label="Öncelik Filtresi">
+                                <option value="">Tüm Öncelikler</option>
+                                <option value="high">Yüksek</option>
+                                <option value="medium">Orta</option>
+                                <option value="low">Düşük</option>
+                            </select>
+                            <input type="text" placeholder="Proje ara..." class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" id="searchProjects" onkeyup="filterProjects()">
+                        </div>
+                    </div>
+
+                    <!-- Projects Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="projects-grid">
+                        <!-- Projects will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Management Section -->
+            <div id="support-management-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Devlet Desteği Yönetimi</h1>
+                        <p class="text-gray-600 mt-1">Projelere devlet desteği ekleyin ve 'Desteklenen' etiketi ile öne çıkarın.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <!-- Support Actions -->
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-green-800">Devlet Desteği Bilgilendirmesi</h3>
+                                <p class="text-green-600 mt-1">Desteklenen projeler tüm kullanıcı panellerinde özel etiketle görünür ve müteahhitlerin dikkatini çeker.</p>
+                            </div>
+                            <div class="text-green-600">
+                                <i class="fas fa-info-circle text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Management Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Pending Review Projects -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">İnceleme Bekleyen Projeler</h3>
+                                <p class="text-sm text-gray-600 mt-1">Destek için değerlendirme bekleyen projeler</p>
+                            </div>
+                            <div class="p-6" id="pending-review-projects">
+                                <!-- Pending review projects will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Supported Projects -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Desteklenen Projeler</h3>
+                                <p class="text-sm text-gray-600 mt-1">Aktif olarak desteklenen projeler</p>
+                            </div>
+                            <div class="p-6" id="supported-projects-list">
+                                <!-- Supported projects will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Districts Section -->
+            <div id="districts-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Bölge Yönetimi</h1>
+                        <p class="text-gray-600 mt-1">Yetki alanınızdaki mahalle ve bölgeleri yönetin.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Map View -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Bölge Haritası</h3>
+                                <div class="flex space-x-2">
+                                    <button onclick="toggleMapLayer('projects')" id="projectsLayerBtn" class="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-lg hover:bg-purple-200 transition-colors">
+                                        <i class="fas fa-building mr-1"></i>
+                                        Projeler
+                                    </button>
+                                    <button onclick="toggleMapLayer('announcements')" id="announcementsLayerBtn" class="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors">
+                                        <i class="fas fa-bullhorn mr-1"></i>
+                                        Duyurular
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <div class="relative map-container bg-gradient-to-br from-blue-50 to-green-50 border-2 border-dashed border-gray-300 rounded-lg">
+                                    <!-- Interactive Map Container -->
+                                    <div id="regionalMap" class="w-full h-full relative overflow-hidden">
+                                        <!-- Istanbul Districts SVG Map -->
+                                        <svg viewBox="0 0 800 600" class="w-full h-full">
+                                            <!-- Background -->
+                                            <rect width="800" height="600" fill="#f8fafc"/>
+                                            
+                                            <!-- Bosphorus -->
+                                            <path d="M300 100 Q350 200 320 300 Q340 400 300 500" stroke="#3b82f6" stroke-width="8" fill="none" opacity="0.6"/>
+                                            
+                                            <!-- Kadıköy District -->
+                                            <g id="kadikoy-district" class="district-area" onclick="selectDistrict('kadikoy')" style="cursor: pointer;">
+                                                <polygon points="350,250 450,240 480,320 420,380 340,360" 
+                                                         fill="#8b5cf6" opacity="0.3" stroke="#8b5cf6" stroke-width="2"/>
+                                                <text x="400" y="310" text-anchor="middle" class="text-sm font-semibold" fill="#8b5cf6">Kadıköy</text>
+                                                <circle cx="400" cy="290" r="4" fill="#dc2626" class="project-marker" data-projects="12"/>
+                                                <circle cx="420" cy="320" r="3" fill="#f59e0b" class="announcement-marker" data-announcements="8"/>
+                                            </g>
+                                            
+                                            <!-- Üsküdar District -->
+                                            <g id="uskudar-district" class="district-area" onclick="selectDistrict('uskudar')" style="cursor: pointer;">
+                                                <polygon points="320,180 400,170 420,240 360,260 310,220" 
+                                                         fill="#10b981" opacity="0.3" stroke="#10b981" stroke-width="2"/>
+                                                <text x="360" y="215" text-anchor="middle" class="text-sm font-semibold" fill="#10b981">Üsküdar</text>
+                                                <circle cx="360" cy="200" r="4" fill="#dc2626" class="project-marker" data-projects="9"/>
+                                                <circle cx="380" cy="230" r="3" fill="#f59e0b" class="announcement-marker" data-announcements="4"/>
+                                            </g>
+                                            
+                                            <!-- Beşiktaş District -->
+                                            <g id="besiktas-district" class="district-area" onclick="selectDistrict('besiktas')" style="cursor: pointer;">
+                                                <polygon points="200,200 280,190 300,260 240,280 180,240" 
+                                                         fill="#f59e0b" opacity="0.3" stroke="#f59e0b" stroke-width="2"/>
+                                                <text x="240" y="235" text-anchor="middle" class="text-sm font-semibold" fill="#f59e0b">Beşiktaş</text>
+                                                <circle cx="240" cy="220" r="4" fill="#dc2626" class="project-marker" data-projects="7"/>
+                                                <circle cx="260" cy="250" r="3" fill="#f59e0b" class="announcement-marker" data-announcements="3"/>
+                                            </g>
+                                            
+                                            <!-- Legend -->
+                                            <g transform="translate(20, 20)">
+                                                <rect x="0" y="0" width="180" height="100" fill="white" opacity="0.9" rx="5" stroke="#e5e7eb"/>
+                                                <text x="10" y="20" class="text-sm font-semibold" fill="#374151">Harita Açıklaması</text>
+                                                
+                                                <circle cx="20" cy="40" r="4" fill="#dc2626"/>
+                                                <text x="35" y="45" class="text-xs" fill="#374151">Projeler</text>
+                                                
+                                                <circle cx="20" cy="60" r="3" fill="#f59e0b"/>
+                                                <text x="35" y="65" class="text-xs" fill="#374151">Duyurular</text>
+                                                
+                                                <rect x="20" y="75" width="15" height="10" fill="#8b5cf6" opacity="0.3"/>
+                                                <text x="40" y="83" class="text-xs" fill="#374151">İlçe Sınırları</text>
+                                            </g>
+                                            
+                                            <!-- Project Markers (can be toggled) -->
+                                            <g id="project-markers" class="map-layer">
+                                                <!-- Additional project markers will be added dynamically -->
+                                            </g>
+                                            
+                                            <!-- Announcement Markers (can be toggled) -->
+                                            <g id="announcement-markers" class="map-layer">
+                                                <!-- Additional announcement markers will be added dynamically -->
+                                            </g>
+                                        </svg>
+                                        
+                                                                <!-- Map Controls -->
+                        <div class="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 space-y-2">
+                            <button onclick="zoomMap('in')" class="block w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 text-sm" title="Yakınlaştır" aria-label="Haritayı Yakınlaştır">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button onclick="zoomMap('out')" class="block w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 text-sm" title="Uzaklaştır" aria-label="Haritayı Uzaklaştır">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button onclick="resetMapView()" class="block w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 text-sm" title="Sıfırla" aria-label="Harita Görünümünü Sıfırla">
+                                <i class="fas fa-home"></i>
+                            </button>
+                        </div>
+                                        
+                                        <!-- District Info Panel -->
+                                        <div id="districtInfoPanel" class="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-4 hidden">
+                                            <h4 id="selectedDistrictName" class="font-semibold text-gray-800 mb-2">İlçe Bilgileri</h4>
+                                            <div id="selectedDistrictInfo" class="text-sm text-gray-600">
+                                                <!-- District information will be populated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- District Stats -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Bölge İstatistikleri</h3>
+                            </div>
+                            <div class="p-6" id="district-stats">
+                                <!-- District statistics will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Raporlar</h1>
+                        <p class="text-gray-600 mt-1">Kentsel dönüşüm süreçleri hakkında detaylı raporlar.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="reports-grid">
+                        <!-- Reports will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="min-h-screen hidden">
+                <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Ayarlar</h1>
+                        <p class="text-gray-600 mt-1">Belediye paneli ayarlarını yönetin.</p>
+                    </div>
+                </header>
+                
+                <div class="p-6">
+                    <div class="max-w-2xl">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Genel Ayarlar</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Otomatik Bildirimler</label>
+                                        <p class="text-sm text-gray-500">Yeni projeler için otomatik bildirim alın</p>
+                                    </div>
+                                    <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                        <div class="toggle-slider"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">E-posta Bildirimleri</label>
+                                        <p class="text-sm text-gray-500">Önemli güncellemeler için e-posta gönder</p>
+                                    </div>
+                                    <div class="toggle-switch" onclick="toggleSetting(this)">
+                                        <div class="toggle-slider"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Destek Onayı Gerekli</label>
+                                        <p class="text-sm text-gray-500">Projeler için manuel onay süreci</p>
+                                    </div>
+                                    <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                        <div class="toggle-slider"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- New Announcement Modal -->
+    <div id="newAnnouncementModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Yeni Duyuru Oluştur</h2>
+                    <button onclick="closeNewAnnouncementModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="newAnnouncementForm" onsubmit="submitNewAnnouncement(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="announcementTitle" class="block text-sm font-medium text-gray-700 mb-2">Duyuru Başlığı *</label>
+                                <input type="text" id="announcementTitle" name="title" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="Duyuru başlığını girin">
+                            </div>
+                            
+                            <div>
+                                <label for="announcementType" class="block text-sm font-medium text-gray-700 mb-2">Proje Türü *</label>
+                                <select id="announcementType" name="type" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Tür Seçin</option>
+                                    <option value="urban-transformation">Kentsel Dönüşüm</option>
+                                    <option value="renovation">Yenileme</option>
+                                    <option value="development">Arsa Geliştirme</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="announcementDistrict" class="block text-sm font-medium text-gray-700 mb-2">İlçe *</label>
+                                <select id="announcementDistrict" name="district" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">İlçe Seçin</option>
+                                    <option value="kadikoy">Kadıköy</option>
+                                    <option value="uskudar">Üsküdar</option>
+                                    <option value="besiktas">Beşiktaş</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="announcementNeighborhood" class="block text-sm font-medium text-gray-700 mb-2">Mahalle</label>
+                                <input type="text" id="announcementNeighborhood" name="neighborhood" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="Mahalle adını girin">
+                            </div>
+                            
+                            <div>
+                                <label for="announcementPriority" class="block text-sm font-medium text-gray-700 mb-2">Öncelik *</label>
+                                <select id="announcementPriority" name="priority" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Öncelik Seçin</option>
+                                    <option value="high">Yüksek</option>
+                                    <option value="medium">Orta</option>
+                                    <option value="low">Düşük</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="announcementDeadline" class="block text-sm font-medium text-gray-700 mb-2">Son Başvuru Tarihi *</label>
+                                <input type="date" id="announcementDeadline" name="deadline" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="announcementCost" class="block text-sm font-medium text-gray-700 mb-2">Tahmini Maliyet (₺)</label>
+                                <input type="number" id="announcementCost" name="estimatedCost" min="0" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="0">
+                            </div>
+                            
+                            <div>
+                                <label for="announcementApplicants" class="block text-sm font-medium text-gray-700 mb-2">Beklenen Başvuru Sayısı</label>
+                                <input type="number" id="announcementApplicants" name="expectedApplicants" min="0" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="0">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Devlet Desteği</label>
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" id="announcementSupport" name="governmentSupport" 
+                                           class="rounded border-gray-300 text-primary focus:ring-primary">
+                                    <label for="announcementSupport" class="text-sm text-gray-700">Bu proje devlet desteği alacak</label>
+                                </div>
+                            </div>
+                            
+                            <div id="supportReasonDiv" class="hidden">
+                                <label for="announcementSupportReason" class="block text-sm font-medium text-gray-700 mb-2">Destek Gerekçesi</label>
+                                <textarea id="announcementSupportReason" name="supportReason" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                                          placeholder="Destek gerekçesini yazın..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mt-6">
+                        <label for="announcementDescription" class="block text-sm font-medium text-gray-700 mb-2">Duyuru Açıklaması *</label>
+                        <textarea id="announcementDescription" name="description" rows="4" required 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                                  placeholder="Duyuru açıklamasını detaylı bir şekilde yazın..."></textarea>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="flex justify-end space-x-3 mt-8">
+                        <button type="button" onclick="closeNewAnnouncementModal()" 
+                                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            İptal
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Duyuru Oluştur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Detail Modal -->
+    <div id="announcementDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800" id="announcementDetailTitle">Duyuru Detayları</h2>
+                    <button onclick="closeAnnouncementDetailModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="announcementDetailContent">
+                    <!-- Announcement detail content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Enhanced Project Detail Modal -->
+    <div id="projectDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800" id="modalProjectTitle">Proje Detayları</h2>
+                    <button onclick="closeProjectModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="modalProjectContent">
+                    <!-- Project content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Decision Modal -->
+    <div id="supportDecisionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Devlet Desteği Kararı</h2>
+                    <button onclick="closeSupportModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="supportModalContent">
+                    <!-- Support decision content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Notifications will be added here -->
+    </div>
+
+    <!-- JavaScript -->
+    <script src="./js/municipality-dashboard.js"></script>
+</body>
+
+</html>
