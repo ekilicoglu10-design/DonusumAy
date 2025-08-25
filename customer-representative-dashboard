@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DönüşümAY - Müşteri Temsilcisi Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #5A00A8;
+            --primary-light: #8B00FF;
+            --primary-dark: #4B0082;
+            --accent: #28a745;
+            --accent-warning: #FF8C00;
+            --text-dark: #343a40;
+            --text-medium: #4A4A4A;
+            --text-light: #6c757d;
+            --bg-white: #FFFFFF;
+            --bg-light-gray: #F8F8F8;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .bg-primary-light { background-color: var(--primary-light); }
+        .bg-primary-dark { background-color: var(--primary-dark); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .notification.removing {
+            animation: slideOutRight 0.3s ease-in;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .chat-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-light) #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 3px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-in-progress {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-resolved {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-closed {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .priority-high {
+            border-left: 4px solid #dc2626;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .priority-low {
+            border-left: 4px solid #10b981;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-customer { background-color: #3b82f6; }
+        .user-contractor { background-color: #f59e0b; }
+        .user-architect { background-color: #8b5cf6; }
+        .user-notary { background-color: #06b6d4; }
+        .user-admin { background-color: #ef4444; }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-sent {
+            background-color: var(--primary);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message-received {
+            background-color: #f3f4f6;
+            color: var(--text-dark);
+        }
+
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            background-color: #f3f4f6;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f8fafc;
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-item.active:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .ticket-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(90, 0, 168, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <img src="BEĞENDİĞİM.png" alt="DönüşümAY Logo" class="h-8 w-auto">
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-800">Müşteri Temsilcisi</h1>
+                        <p class="text-sm text-gray-500">Destek Paneli</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="sidebar-item active flex items-center space-x-3 p-3 rounded-lg">
+                            <i class="fas fa-comments w-5"></i>
+                            <span>Tüm Destek Talepleri</span>
+                            <span class="ml-auto bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full" id="totalTickets">12</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="filterTickets('pending')">
+                            <i class="fas fa-clock w-5"></i>
+                            <span>Bekleyen</span>
+                            <span class="ml-auto bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded-full" id="pendingTickets">5</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="filterTickets('in-progress')">
+                            <i class="fas fa-spinner w-5"></i>
+                            <span>İşlemde</span>
+                            <span class="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="inProgressTickets">4</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="filterTickets('resolved')">
+                            <i class="fas fa-check-circle w-5"></i>
+                            <span>Çözümlenen</span>
+                            <span class="ml-auto bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full" id="resolvedTickets">3</span>
+                        </a>
+                    </li>
+                    <li class="border-t border-gray-200 pt-2">
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showLiveUsers()">
+                            <i class="fas fa-users w-5"></i>
+                            <span>Aktif Kullanıcılar</span>
+                            <span class="ml-auto bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full" id="onlineUsers">8</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-gray-600" onclick="showReports()">
+                            <i class="fas fa-chart-bar w-5"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="user-avatar bg-purple-600">
+                        MT
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Mehmet Temsilci</p>
+                        <p class="text-xs text-gray-500">Müşteri Temsilcisi</p>
+                    </div>
+                                            <button onclick="logout()" class="text-gray-400 hover:text-gray-600" title="Çıkış Yap" aria-label="Çıkış Yap">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Top Bar -->
+            <div class="bg-white shadow-sm border-b border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Destek Talepleri</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">Toplam:</span>
+                            <span class="text-sm font-medium text-gray-800" id="displayedTicketsCount">12</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text" placeholder="Destek talebi ara..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-64"
+                                   id="searchInput" onkeyup="searchTickets()">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <!-- Refresh -->
+                        <button onclick="refreshTickets()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg" title="Yenile" aria-label="Destek Taleplerini Yenile">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <!-- Settings -->
+                        <button onclick="openSettings()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg" title="Ayarlar" aria-label="Ayarları Aç">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Tickets List -->
+                <div class="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+                    <div class="p-4">
+                        <div class="space-y-3" id="ticketsList">
+                            <!-- Tickets will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="flex-1 flex flex-col">
+                    <!-- Chat Header -->
+                    <div class="bg-white border-b border-gray-200 p-4" id="chatHeader">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="user-avatar user-customer relative">
+                                    AV
+                                    <div class="online-indicator"></div>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-gray-800">Ali Veli</h3>
+                                    <p class="text-sm text-gray-500">Müşteri • Son görülme: 2 dakika önce</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary" 
+                                        id="ticketStatus" onchange="updateTicketStatus()" title="Destek Talebi Durumu" aria-label="Destek Talebi Durumunu Seç">
+                                    <option value="pending">Bekliyor</option>
+                                    <option value="in-progress" selected>İşlemde</option>
+                                    <option value="resolved">Çözümlendi</option>
+                                    <option value="closed">Kapatıldı</option>
+                                </select>
+                                <button onclick="assignTicket()" class="text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded-lg hover:bg-blue-200" title="Destek Talebini Ata" aria-label="Destek Talebini Başka Temsilciye Ata">
+                                    <i class="fas fa-user-plus mr-1"></i>
+                                    Ata
+                                </button>
+                                <button onclick="escalateTicket()" class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded-lg hover:bg-red-200" title="Destek Talebini Yükselt" aria-label="Destek Talebini Üst Seviyeye Yükselt">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Yükselt
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="flex-1 p-4 overflow-y-auto chat-messages" id="chatMessages">
+                        <!-- Messages will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Typing Indicator -->
+                    <div class="px-4 hidden" id="typingIndicator">
+                        <div class="typing-indicator">
+                            <span class="text-sm text-gray-500 mr-2">Ali yazıyor</span>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="bg-white border-t border-gray-200 p-4">
+                        <div class="flex items-end space-x-3">
+                            <div class="flex-1">
+                                <textarea id="messageInput" 
+                                          placeholder="Mesajınızı yazın..." 
+                                          rows="2" 
+                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                          onkeypress="handleKeyPress(event)"></textarea>
+                            </div>
+                            <div class="flex flex-col space-y-2">
+                                <button onclick="attachFile()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg" title="Dosya Ekle" aria-label="Dosya Ekle">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button onclick="sendMessage()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark" title="Mesaj Gönder" aria-label="Mesaj Gönder">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Responses -->
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button onclick="insertQuickResponse('Merhaba! Size nasıl yardımcı olabilirim?')" 
+                                    class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-gray-200">
+                                Selamlama
+                            </button>
+                            <button onclick="insertQuickResponse('Sorununuzu anlıyorum, hemen kontrol ediyorum.')" 
+                                    class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-gray-200">
+                                Anlayış
+                            </button>
+                            <button onclick="insertQuickResponse('Bu konuda size daha detaylı bilgi vereceğim.')" 
+                                    class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-gray-200">
+                                Detay
+                            </button>
+                            <button onclick="insertQuickResponse('Sorununuz çözüldü. Başka bir konuda yardıma ihtiyacınız var mı?')" 
+                                    class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-gray-200">
+                                Çözüm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Live Users Modal -->
+    <div id="liveUsersModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Aktif Kullanıcılar</h2>
+                    <button onclick="closeLiveUsersModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="space-y-3" id="liveUsersList">
+                    <!-- Live users will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reportsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Destek Raporları</h2>
+                    <button onclick="closeReportsModal()" class="text-gray-400 hover:text-gray-600" title="Kapat" aria-label="Modalı Kapat">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="reportsContent">
+                    <!-- Reports will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Notifications will be added here -->
+    </div>
+
+    <!-- JavaScript -->
+    <script src="./js/customer-representative-dashboard.js"></script>
+</body>
+
+</html>
