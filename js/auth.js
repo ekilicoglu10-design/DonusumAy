@@ -40,6 +40,54 @@
             registerForm.classList.toggle('hidden');
         }
 
+        // Genel kullanıcı giriş formunu göster
+        function showGeneralLogin() {
+            const panelSelection = document.querySelector('.mt-8');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            // Panel seçimini gizle
+            panelSelection.classList.add('hidden');
+            
+            // Giriş formunu göster
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            
+            // Geri dön butonu ekle
+            if (!document.getElementById('backToSelection')) {
+                const backButton = document.createElement('div');
+                backButton.id = 'backToSelection';
+                backButton.className = 'text-center mt-4';
+                backButton.innerHTML = `
+                    <button onclick="showPanelSelection()" class="text-sm text-primary hover:text-primary-dark">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Panel seçimine geri dön
+                    </button>
+                `;
+                loginForm.appendChild(backButton);
+            }
+        }
+
+        // Panel seçimini göster
+        function showPanelSelection() {
+            const panelSelection = document.querySelector('.mt-8');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const backButton = document.getElementById('backToSelection');
+            
+            // Panel seçimini göster
+            panelSelection.classList.remove('hidden');
+            
+            // Form'ları gizle
+            loginForm.classList.add('hidden');
+            registerForm.classList.add('hidden');
+            
+            // Geri dön butonunu kaldır
+            if (backButton) {
+                backButton.remove();
+            }
+        }
+
         // Buton yükleme durumu
         function setLoading(button, isLoading) {
             if (isLoading) {
@@ -82,6 +130,12 @@
                 role: 'notary',
                 name: 'Ali Noter',
                 dashboard: 'notary-dashboard.html'
+            },
+            'customer-representative@donusumay.com': {
+                password: '123456',
+                role: 'customer-representative',
+                name: 'Ahmet Yılmaz',
+                dashboard: 'customer-representative-dashboard.html'
             }
         };
 
