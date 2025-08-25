@@ -826,7 +826,6 @@ function initializeApp() {
                 console.log('User is admin, initializing dashboard...');
                 currentUser = user;
                 initializeDashboard();
-                loadDashboardData();
             } else {
                 console.log('User is not admin, redirecting to auth...');
                 window.location.href = 'auth.html';
@@ -867,26 +866,7 @@ function initializeDashboard() {
 }
 
 // Navigation Functions
-function showSection(sectionId) {
-    // Hide all sections
-    const sections = document.querySelectorAll('[id$="-section"]');
-    sections.forEach(section => {
-        section.classList.add('hidden');
-    });
 
-    // Show selected section
-    const selectedSection = document.getElementById(sectionId);
-    if (selectedSection) {
-        selectedSection.classList.remove('hidden');
-        currentSection = sectionId;
-
-        // Update sidebar active state
-        updateSidebarActiveState(sectionId);
-
-        // Load section-specific data
-        loadSectionData(sectionId);
-    }
-}
 
 function updateSidebarActiveState(sectionId) {
     // Remove active class from all sidebar links
@@ -947,6 +927,12 @@ function loadSectionData(sectionId) {
             break;
         case 'settings-section':
             loadSettings();
+            break;
+        case 'municipality-panel-section':
+            loadMunicipalityPanelStats();
+            break;
+        case 'customer-representative-panel-section':
+            loadCustomerRepPanelStats();
             break;
     }
 }
@@ -9333,7 +9319,109 @@ function openChangePriorityModal(ticketId) {
 
 function openAssignToAdminModal(ticketId) {
     openSupportTicketDetailsModal(ticketId);
+}
 
+// Panel Management Functions
+function openMunicipalityPanel() {
+    // Open municipality panel in a new tab
+    window.open('municipality-dashboard.html', '_blank');
+    showNotification('Belediye paneli yeni sekmede açıldı', 'success');
+}
+
+function refreshMunicipalityPanel() {
+    // Refresh municipality panel statistics
+    loadMunicipalityPanelStats();
+    showNotification('Belediye paneli yenilendi', 'success');
+}
+
+function openCustomerRepPanel() {
+    // Open customer representative panel in a new tab
+    window.open('customer-representative-dashboard.html', '_blank');
+    showNotification('Müşteri temsilcisi paneli yeni sekmede açıldı', 'success');
+}
+
+function refreshCustomerRepPanel() {
+    // Refresh customer representative panel statistics
+    loadCustomerRepPanelStats();
+    showNotification('Müşteri temsilcisi paneli yenilendi', 'success');
+}
+
+// Panel Statistics Functions
+function loadMunicipalityPanelStats() {
+    // Update municipality panel statistics (these would come from API in real app)
+    console.log('Loading municipality panel statistics...');
+    // Statistics are already hardcoded in HTML for demo purposes
+}
+
+function loadCustomerRepPanelStats() {
+    // Update customer representative panel statistics (these would come from API in real app)
+    console.log('Loading customer representative panel statistics...');
+    // Statistics are already hardcoded in HTML for demo purposes
+}
+
+// Enhanced showSection function to handle panel sections
+function showSection(sectionId) {
+    console.log('🔍 showSection called with:', sectionId);
+    
+    // Debug: Check if panel sections exist
+    if (sectionId === 'municipality-panel-section' || sectionId === 'customer-representative-panel-section') {
+        const municipalitySection = document.getElementById('municipality-panel-section');
+        const customerRepSection = document.getElementById('customer-representative-panel-section');
+        console.log('🏛️ Municipality section exists:', municipalitySection !== null);
+        console.log('👥 Customer rep section exists:', customerRepSection !== null);
+        
+        if (municipalitySection) {
+            console.log('Municipality section classes:', municipalitySection.className);
+            console.log('Municipality section display:', window.getComputedStyle(municipalitySection).display);
+        }
+        if (customerRepSection) {
+            console.log('Customer rep section classes:', customerRepSection.className);
+            console.log('Customer rep section display:', window.getComputedStyle(customerRepSection).display);
+        }
+    }
+    
+    // Hide all sections
+    const sections = document.querySelectorAll('[id$="-section"]');
+    console.log('📋 Total sections found:', sections.length);
+    sections.forEach(section => {
+        section.classList.add('hidden');
+        section.style.display = 'none';
+        console.log('🙈 Hidden section:', section.id);
+    });
+
+    // Show selected section
+    const selectedSection = document.getElementById(sectionId);
+    console.log('🎯 Selected section element:', selectedSection);
+    
+    if (selectedSection) {
+        selectedSection.classList.remove('hidden');
+        selectedSection.style.display = 'block';
+        console.log('✅ Showing section:', sectionId);
+        console.log('✅ Section classes after show:', selectedSection.className);
+        console.log('✅ Section display after show:', window.getComputedStyle(selectedSection).display);
+        currentSection = sectionId;
+
+        // Update sidebar active state
+        updateSidebarActiveState(sectionId);
+
+        // Load section-specific data
+        loadSectionData(sectionId);
+        
+        // Panel sections now load directly without iframes
+        if (sectionId === 'municipality-panel-section') {
+            console.log('🏛️ Loading municipality panel content...');
+            // Panel content is now loaded directly in HTML
+        } else if (sectionId === 'customer-representative-panel-section') {
+            console.log('👥 Loading customer rep panel content...');
+            // Panel content is now loaded directly in HTML
+        }
+    } else {
+        console.error('❌ Section not found:', sectionId);
+        // List all available sections for debugging
+        const allSections = document.querySelectorAll('[id$="-section"]');
+        console.log('Available sections:');
+        allSections.forEach(section => console.log('- ' + section.id));
+    }
 }
 
 
